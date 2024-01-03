@@ -1,6 +1,6 @@
 # Author: Marcello Borges
-# GitHub username: borgesma
-# Date: 12/25/2023
+# GitHub username: marcborg
+# Date: 1/3/2024
 # Description: Create a Ludo Board Game
 
 """
@@ -31,55 +31,88 @@ Decision Making Algorithm:
 
 class Player:
     """
-    - a Player represents the player who plays the game at a certain position
+    A class to represent a Ludo game player with a position between A-D, a start/end space, current position and current state
     """
-    def __init__(self, player_position, start_space, end_space):
+    def __init__(self, player_position, start_space, end_space, token_p_position="H", token_q_position="H", current_state="STILL PLAYING"):
+        """
+        The constructor for the Player class.
+        :param player_position: a position between A-D
+        :param start_space: start space for the player which depends on which position they are in
+        :param end_space: end space for the player which depends on which position they are in
+        :param token_p_position: position of the player's token p (in the home yard (H), ready to go (R), somewhere on the board, or has finished (E))
+        :param token_q_position: position of the player's token q (in the home yard (H), ready to go (R), somewhere on the board, or has finished (E))
+        :param current_state: denotes whether the player has won and finished the game or is still playing
+        Initializes the required data members. All data members are private.
+        """
         self._player_position = player_position
         self._start_space = start_space
         self._end_space = end_space
-        self._token_p_position = "H"
-        self._token_q_position = "H"
+        self._token_p_position = token_p_position
+        self._token_q_position = token_q_position
+        self._current_state = current_state
         self._token_p_step_count = -1
         self._token_q_step_count = -1
-        self._player_state = "STILL PLAYING"
-
-    def set_completed(self):
-        self._player_state == "FINISHED"
         
     def get_player_position(self):
+        """
+        Takes no parameters and returns the player position between A-D
+        """
         return self._player_position
     
     def get_completed(self):
         """
-        - takes no parameters and returns True or False if the player has finished or not finished the game
+        Method that takes no parameters and returns True or False if the players has finished the game or not
         """
-        if self._player_state == "STILL PLAYING":
+        if self._current_state == "STILL PLAYING":
             return False
         return True
 
+    def set_completed(self):
+        """
+        Takes no parameters and sets current_state to FINISHED to denote player has finsihsed the game being played
+        """
+        self._current_state == "FINISHED"
+
     def get_token_p_position(self):
+        """
+        Takes no parameters and returns the number of steps the token p has taken on the board.
+        The total steps should not be larger than 57.
+        """
         return self._token_p_position
 
     def get_token_q_position(self):
+        """
+        Takes no parameters and returns the number of steps the token q has taken on the board.
+        The total steps should not be larger than 57.
+        """
         return self._token_q_position
 
     def set_token_p_position(self, position):
+        """
+        Method that sets token p to desired position
+        :param position: position to move token p to (i.e. H for home yard)
+        """
         self._token_p_position = position
 
     def set_token_q_position(self, position):
+        """
+        Method that sets token q to desired position
+        :param position: position to move token q to (i.e. H for home yard)
+        """
         self._token_q_position = position
 
     def get_token_p_step_count(self):
         """
-        - takes no parameters and returns the total steps the token p has taken on the board
-        - use steps = -1 for home yard position and steps = 0 for ready to go position
-        - the total step should not be larger than 57.
+        Takes no parameters and returns the total steps the token p has taken on the board
+        Use steps = -1 for home yard position and steps = 0 for ready to go position
+        The total step should not be larger than 57
         """
         return self._token_p_step_count
 
     def set_token_p_step_count(self, steps):
         """
-
+        Method that sets token p step count based on combination of decision making algorithm and provided in rules
+        :param steps: the number of steps token p will move, eventually emulating dice roll
         """
         if self.get_token_p_step_count() == -1 and steps != 6:
             return
@@ -90,21 +123,22 @@ class Player:
             self._token_p_step_count += steps
         elif self.get_token_p_step_count() == 57:
             self._token_p_position = 'E'
-            return
+            if self._token_q_position == 'E':
+                self._current_state = "FINISHED"
         else:
             self._token_p_step_count = 57 - ((self.get_token_p_step_count() + steps) % 57)
         
     def get_token_q_step_count(self):
         """
-        - takes no parameters and returns the total steps the token q has taken on the board
-        - use steps = -1 for home yard position and steps = 0 for ready to go position
-        - the total step should not be larger than 57.
+        Method that sets token q step count based on game rules
+        :param steps: the number of steps token q will move, eventually emulating dice roll
         """
         return self._token_q_step_count
 
     def set_token_q_step_count(self, steps):
         """
-
+        Method that sets token p step count based on game rules
+        :param steps: the number of steps token p will move, eventually emulating dice roll
         """
         if self.get_token_q_step_count() == -1 and steps != 6:
             return
@@ -115,32 +149,39 @@ class Player:
             self._token_q_step_count += steps
         elif self.get_token_q_step_count() == 57:
             self._token_q_position = 'E'
-            return
+            if self._token_p_position == 'E':
+                self._current_state = "FINISHED"
         else:
             self._token_q_step_count = 57 - ((self.get_token_q_step_count() + steps) % 57)
 
     def get_space_name(self, total_token_steps):
         """
-        - takes as a parameter the total steps of the token
-        - returns the name of the space the token has landed on on the board as a string
-        - it should be able to return the home yard position (H) and the ready to go position (R) as well
+        Method that returns the name of the space the token has landed on on the board as a string.
+        :param total_token_steps: the count of the steps the respective token has taken
+        Method is also able to return the home yard position (H) and the ready to go position (R)
         """
         positions = {-1: 'H', 0: 'R', 57: 'E'}
 
         if total_token_steps in positions:
+            # if steps value equals dictionary key, return key value
             return positions[total_token_steps]
         elif total_token_steps > 50:
+            # else if steps are greater than 50, the token has landed in their respective home squares
             return self._player_position + str(total_token_steps % 50)
-        return (total_token_steps + self._start_space - 1) % 56
+        return (total_token_steps + self._start_space - 1) % 56 # returns space name based on calculation of steps taken and player's start space
 
 class LudoGame:
     """
-    - represents the game as played
-    - contain information about the players and information about the board
+    A class to represent the game as played and should contain information about the players as well as information about the board.
     """
 
     def __init__(self):
-
+        """
+        The constructor for the LudoGame class. 
+        Takes no parameters. 
+        Initializes the required data members.
+        All data members are private.
+        """
         self._playerA = Player('A', 1, 50)
         self._playerB = Player('B', 15, 8)
         self._playerC = Player('C', 29, 22)
@@ -149,8 +190,8 @@ class LudoGame:
 
     def get_player_by_position(self, player_position):
         """
-        - takes a parameter representing the players position as a string
-        - returns the player object
+        Method that returns the player_position object and if not a valid player, returns player not found.
+        :param player_position: represents the players position as a string
         """
         for player in self._player_list:
             if player_position == player.get_player_position():
@@ -159,13 +200,14 @@ class LudoGame:
 
     def move_token(self, player_object, token_name, steps_taken):
         """
-        - this method will take care of one token moving on the board
-        - will update the tokens total steps
-        - will take care of kicking out other opponent tokens as needed
-        - the play_game method will use this method
+        Method moves one token of a player on the board and updates the token's total steps
+        :param player_object: object representing the player whose turn it is
+        :param token_name: string representing the token 'p' or 'q'
+        :param steps_to_move: integer representing the number of steps the token will move on the board
+        It will take care of kicking out another opponent token if it needs. Will be used by the play_game method 
         """
-
         if token_name in ['p', 'q'] and player_object.get_token_p_step_count() > 0 and (player_object.get_space_name(player_object.get_token_p_step_count()) == player_object.get_space_name(player_object.get_token_q_step_count())):
+            # checks if player tokens are stacked and moves both, if so
             player_object.set_token_p_step_count(steps_taken)
             player_object.set_token_q_step_count(steps_taken)
 
@@ -176,6 +218,7 @@ class LudoGame:
             player_object.set_token_q_step_count(steps_taken)
 
         for player in self._player_list:
+            # iterates through player list for purpose of kicking out opponent's token if current player lands on same space name
             opponent_player_position = player.get_player_position()
             opponent_token_p_space_name = player.get_space_name(player.get_token_p_step_count())
             opponent_token_q_space_name = player.get_space_name(player.get_token_q_step_count())
@@ -200,13 +243,11 @@ class LudoGame:
                     
     def play_game(self, players_list, turns_list):
         """
-        - the players list is the list of positions players choose, like [A, C] means two players will play the game at position A and C
-        - the turns list is a list of tuples with each tuple a roll for one player
-        - this method will create the player list first using the players list pass in
-        - then move the tokens according to the turns list following the priority rule 
-        - update the tokens position and the players game state (whether finished the game or not)
-        - after all the moving is done in the turns list, the method will return a list of strings representing the current spaces of all of the tokens for each player 
-        - H for home yard, R for ready to go position, E for finished position, and other letters/numbers for the space the token has landed on
+        This method creates the player list first using the players list pass in and then moves the tokens according to the turns list following the priority rule.
+        It will update the token's position and the player's game state whether they finish or not.
+        :param players_list: represents the list of positions players choose
+        :param turns_list: represents the list of tuples with each tuple a roll for one player
+        Returns a list of strings representing the current spaces of all the tokens for each player in the list after moving the tokens following the rules described.
         """
 
         player_object_list = []
@@ -214,6 +255,7 @@ class LudoGame:
             player_object_list.append(self.get_player_by_position(players))
 
         for turns in turns_list:
+            # looks at player in turn and appends opponent player space names for verification of same space name to kick out token
             in_turn_player_position = turns[0]
             dice_roll = turns[1]
             players_token_p_list = []
@@ -224,6 +266,7 @@ class LudoGame:
                     players_token_q_list.append(player_object.get_space_name(player_object.get_token_q_step_count()))
 
             for player_object in player_object_list:
+                # moves token based on decision making algorithm
                 if in_turn_player_position == player_object.get_player_position():
                     token_p_space = player_object.get_space_name(player_object.get_token_p_step_count())
                     token_q_space = player_object.get_space_name(player_object.get_token_q_step_count())
@@ -248,6 +291,7 @@ class LudoGame:
         
         players_space_names = []
         for player_objects in player_object_list:
+            # creates list that will have all player's p and q token space names
             players_space_names.append(str(player_objects.get_space_name(player_objects.get_token_p_step_count())))
             players_space_names.append(str(player_objects.get_space_name(player_objects.get_token_q_step_count())))
 
